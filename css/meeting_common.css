@@ -1,0 +1,16 @@
+html {
+    color:#000;
+    background:#FFF;
+    height:100%;
+}
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,
+input,textarea,p,blockquote,th,td {
+    margin:0;
+    padding:0
+}
+body {
+    line-height: 1.5;
+    font: 12px/100%  "SimSun arial","Times New Roman","Times", "serif";
+    height:100%;
+}
+.meeting-box{padding: 50px 20px;background-color:rgba(0,0,0,0.5);position: relative;height: 100%;box-sizing: content-box;}
