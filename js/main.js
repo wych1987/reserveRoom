@@ -8,10 +8,10 @@ require(['jquery',"my_svg"],function($,mySVG){
     config.xAxisTime=[];
     config.interval=30;//30分钟一个数据点
     config.startTime=9;
-    config.endTime=20;
+    config.endTime=21;
     config.leftWidth=150;
     config.yAxis=30;
-    config.scaleY=100;//y轴间隔
+    config.scaleY=80;//y轴间隔
     config.lineColor="#C0D0E0"
     config.meetingData=[{id:1,name:"湾流"},{id:2,name:"三重门"}];
     $(document).ready(function(){
@@ -19,7 +19,7 @@ require(['jquery',"my_svg"],function($,mySVG){
         var jWinHeight=jWin.height();
         var jWinWidth=jWin.width();
         config.winWidth=jWinWidth;
-        var cssText="position:fixed;width:"+jWinWidth+"px;height:"+jWinHeight+"px;top:100px;left:-10px;";
+        var cssText="position:fixed;width:"+jWinWidth+"px;height:"+jWinHeight+"px;top:50px;left:-10px;";
         var SVG=mySVG.SVG("meetingBox",cssText);
        // mySVG.line(SVG,{  x1:"0", y1:"0", x2:jWinWidth, y2:jWinHeight,stroke:"#C0D0E0","stroke-width":"1"});
         init();
@@ -86,7 +86,7 @@ require(['jquery',"my_svg"],function($,mySVG){
     //绘制刻度
     function drawYaxis(svgDom,length){
         var attr={}
-        var scaleY=100;
+        var scaleY=config.scaleY;
         var scaleYWidth=config.leftWidth-100;
         var length=config.meetingData.length;
         attr.x2=attr.x1=config.leftWidth;
@@ -107,5 +107,6 @@ require(['jquery',"my_svg"],function($,mySVG){
     }
     function fillMeetingBox(data){
         //
+
     }
 });

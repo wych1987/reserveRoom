@@ -13,4 +13,9 @@ body {
     font: 12px/100%  "SimSun arial","Times New Roman","Times", "serif";
     height:100%;
 }
+ul,li,ol{list-style: none;}
 .meeting-box{padding: 50px 20px;background-color:rgba(0,0,0,0.5);position: relative;height: 100%;box-sizing: content-box;}
+.meeting-list{position: absolute;top:180px;left:40px;width:1290px;}
+.meeting-item{height:50px;margin: 15px 0;display: flex;flex-flow: row;}
+.meeting-name{height:50px;line-height:50px;font-size: 20px;color:#fff;width:95px;text-align: center;display: inline-block;margin: 0 10px 0 0;}
+.meeting-time{height: 100%;background: #C0D0E0;flex: 1;}
