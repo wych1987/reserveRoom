@@ -1,31 +1,45 @@
 requirejs.config({
+    shim : {
+        'handlebars' : {
+            exports : 'Handlebars'
+        }
+    },
         paths : {
-            'jquery': "http://libs.baidu.com/jquery/1.9.0/jquery"
+            'jquery': "http://libs.baidu.com/jquery/1.9.0/jquery",
+            'handlebars' : "handlebars"
         }
 })
-require(['jquery',"my_svg"],function($,mySVG){
+require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
     var config={};
     config.xAxisTime=[];
     config.interval=30;//30分钟一个数据点
-    config.startTime=9;
-    config.endTime=21;
+    config.startTime=9;//早九点
+    config.endTime=21;//晚21点
+    config.strStartTime="9:00";
+    config.strEndTime="21:00";
     config.leftWidth=150;
     config.yAxis=30;
     config.scaleY=80;//y轴间隔
     config.lineColor="#C0D0E0"
-    config.meetingData=[{id:1,name:"湾流"},{id:2,name:"三重门"}];
+    config.meetingData=[{id:1,name:"湾流",meetingTime:[{start:"9:15",end:"10:25",title:"巴巴巴巴拉拉"},{start:"13:15",end:"15:25",title:"balalalala"}]},{id:2,name:"三重门",meetingTime:[{start:"9:15",end:"11:05",title:"难啊难南岸"},{start:"13:55",end:"14:25",title:"急啊急啊急啊急啊"}]}];
+    var tpl='{{#each this}}<li class="meeting-item" meetingId="{{id}}" "><h2 class="meeting-name">{{name}}</h2><div class="meeting-time"><div class="time-item time-past" style="width:0%;"></div>{{#each meetingTime}}<div class="time-item time-disabled" style="width:{{percent}};left:{{offset}}" title="{{title}} {{start}}-{{end}}"><h3 class="time-title">{{title}}</h3><p class="time-range">{{start}}-{{end}}</p></div>{{/each}}</div></li>{{/each}}'
+     var template=Handlebars.compile(tpl);
     $(document).ready(function(){
         var jWin=$(window);
         var jWinHeight=jWin.height();
         var jWinWidth=jWin.width();
         config.winWidth=jWinWidth;
-        var cssText="position:fixed;width:"+jWinWidth+"px;height:"+jWinHeight+"px;top:50px;left:-10px;";
-        var SVG=mySVG.SVG("meetingBox",cssText);
+        var meetingList=$("#meetingList");
+        var cssTextX="position:fixed;width:"+jWinWidth+"px;height:"+jWinHeight+"px;top:50px;left:-10px;z-index:11;";
+        var cssTextY="position:absolute;width:"+jWinWidth+"px;height:"+jWinHeight+"px;top:50px;left:-10px;";
+        var SVGX=mySVG.SVG("meetingBox",cssTextX);
+        var SVGY=mySVG.SVG("meetingBox",cssTextY);
        // mySVG.line(SVG,{  x1:"0", y1:"0", x2:jWinWidth, y2:jWinHeight,stroke:"#C0D0E0","stroke-width":"1"});
         init();
-        createXAxis(SVG,{width:jWinWidth});
-        createYAxis(SVG,config.meetingData);
-        console.log(config);
+        createXAxis(SVGX,{width:jWinWidth});
+        createYAxis(SVGY,config.meetingData,meetingList);
+        //console.log(config);
+
     });
     function init(){
         //生成x轴的时间
@@ -79,8 +93,8 @@ require(['jquery',"my_svg"],function($,mySVG){
         svgDom.appendChild(txtG);
     }
     //创建Y轴
-    function createYAxis(svgDom,data){
-        fillMeetingBox(data);
+    function createYAxis(svgDom,data,dom){
+        fillMeetingBox(data,dom);
         drawYaxis(svgDom,data.length);
     }
     //绘制刻度
@@ -105,8 +119,36 @@ require(['jquery',"my_svg"],function($,mySVG){
         }
         svgDom.appendChild(g);
     }
-    function fillMeetingBox(data){
+    function fillMeetingBox(data,dom){
         //
+        for(var i = 0;i<data.length;i++){
+            var d=data[i];
+            d.meetingTime=formateTime(d.meetingTime,config.startTime,config.endTime);
+        }
+        //
+        dom.html(template(data));
+    }
+    function formateTime(time,startTime,endTime){
+        var minute=60;
+        var startMinute=startTime*minute;
+        var endminute=endTime*minute;
 
+        var rangeTime=endminute-startMinute;//会议时间区间的分钟数
+        for(var i=0; i< time.length;i++){
+            var start = time[i].start;
+            var end = time[i].end;
+            var s=start.split(":");
+            var e=end.split(":");
+            var percent=0, offset=0;
+            var sMinute=(s[0]-0)*minute+parseInt(s[1]);
+            var eMinute=(e[0]-0)*minute+parseInt(e[1]);
+             var r=eMinute-sMinute;
+            offset = (sMinute-startMinute) /rangeTime ;
+            percent = r/rangeTime ;
+            time[i].offset = (offset*100)+"%";
+            time[i].percent = (percent*100)+"%";
+        }
+        console.log(time);
+        return time;
     }
 });
