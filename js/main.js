@@ -25,7 +25,7 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
     config.lineColor="#C0D0E0"
     config.meetingData=[{id:1,name:"湾流",meetingTime:[{start:1415089505,end:1415089505+60*120,title:"巴巴巴巴拉拉"},{start:1415089505+60*150,end:1415089505+60*220,title:"balalalala"}]},
         {id:2,name:"三重门",meetingTime:[{start:1415089505-60*120,end:1415089505+60*100,title:"难啊难南岸"},{start:1415089505-60*420,end:1415089505-60*320,title:"急啊急啊急啊急啊"}]}];
-    var tpl='{{#each this}}<li class="meeting-item" meetingId="{{id}}" "><h2 class="meeting-name">{{name}}</h2><div class="meeting-time"><div class="time-item time-past" style="width:0%;"></div>{{#each meetingTime}}<div class="time-item time-disabled" style="width:{{percent}};left:{{offset}}" title="{{title}} {{tplStart}}-{{tplEnd}}"><h3 class="time-title">{{title}}</h3><p class="time-range">{{tplStart}}-{{tplEnd}}</p></div>{{/each}}</div></li>{{/each}}'
+    var tpl='{{#each this}}<li class="meeting-item" meetingId="{{id}}" "><h2 class="meeting-name">{{name}}</h2><div class="meeting-time"><div class="time-item time-past" style="width:0%;"></div>{{#each meetingTime}}<div class="time-item j_time_item {{#if disabled}} time-disabled {{/if}}" style="width:{{percent}};left:{{offset}}"  title="      {{#if disabled}}{{title}} {{/if}}{{tplStart}}-{{tplEnd}}"  index="{{@index}}"><h3 class="time-title">{{#if disabled}}{{title}}{{/if}}</h3><p class="time-range">{{tplStart}}-{{tplEnd}}</p></div>{{/each}}</div></li>{{/each}}'
      var template=Handlebars.compile(tpl);
     var dateInput={};
     $(document).ready(function(){
@@ -43,7 +43,6 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
         init();
         createXAxis(SVGX,{width:jWinWidth});
         createYAxis(SVGY,config.meetingData,meetingList);
-        //console.log(config);
 
     });
     function init(){
@@ -166,25 +165,40 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
     //增加那些能申请会议室的区间
     function addGreenRange2Array(timeData,startTime,endTime){
        //clone数组
-        var a = deepClone(timeData);
-        if(index===0&&time[index].start!=startTime){
+        var title="点击预定会议室";
 
-        }else if(index===time.length-1&&time[index].end!=endTime){
-
-        }else{
-
+        var a = deepClone(timeData,[]);
+        for(var i=0;i<timeData.length;i++){
+            var a1=a[i].meetingTime;
+            var time=timeData[i].meetingTime;
+            for(var n=0;n<time.length;n++){
+                var m = time[n];
+                a1[n].disabled=true;
+                if(n===0){
+                   if(m.start!=startTime){
+                       a1.unshift({start:startTime,end: m.start,title:title});
+                   }
+                }else{
+                   var p = time[n-1];
+                    a1.splice(n,0,{start: p.end,end: m.start,title:title});
+                }
+                if(n===time.length-1&&m.end!=endTime){
+                    a1.push({start: m.end,end: endTime,title:title});
+                }
+            }
         }
+        timeData=null;
+        return a;
     }
     //深度复制的方法
    function deepClone(parent, child) {
-        var i, toStr = Object.prototype.toString,
-            astr = "[object Array]";
+        var i, toStr = Object.prototype.toString,astr = "[object Array]";
         child = child || {};
         for (i in parent) {
             if (parent.hasOwnProperty(i)) {
                 if (typeof parent[i] === "object") {
                     child[i] = (toStr.call(parent[i]) === astr) ? [] : {};
-                    o.deepClone(parent[i], child[i]);
+                    deepClone(parent[i], child[i]);
                 } else {
                     child[i] = parent[i];
                 }
