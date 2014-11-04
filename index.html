@@ -1,4 +1,4 @@
-<!doctype>
+<!doctype html>
 <html>
 <head>
 <title>会议室预定系统</title>
@@ -6,6 +6,7 @@
     <script src=" js/require.js" data-main="/js/main"></script>
 </head>
 <body >
+<input class="date-input " type="text" id="dateInput" onfocus="WdatePicker({minDate:'%y-%M-%d'})" onclick="WdatePicker({minDate:'%y-%M-%d'})" value="2014-11-04">
     <div class="meeting-box" id="meetingBox">
         <ul id="meetingList" class="meeting-list">
             <li class="meeting-item">
@@ -22,5 +23,6 @@
             </li>
         </ul>
     </div>
+<script src="/js/My97/WdatePicker.js"></script>
 </body>
 </html>

@@ -17,21 +17,26 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
     config.endTime=21;//晚21点
     config.strStartTime="9:00";
     config.strEndTime="21:00";
+    config.rangeTime=(config.endTime-config.startTime)*60*60;
+
     config.leftWidth=150;
     config.yAxis=30;
     config.scaleY=80;//y轴间隔
     config.lineColor="#C0D0E0"
-    config.meetingData=[{id:1,name:"湾流",meetingTime:[{start:"9:15",end:"10:25",title:"巴巴巴巴拉拉"},{start:"13:15",end:"15:25",title:"balalalala"}]},{id:2,name:"三重门",meetingTime:[{start:"9:15",end:"11:05",title:"难啊难南岸"},{start:"13:55",end:"14:25",title:"急啊急啊急啊急啊"}]}];
-    var tpl='{{#each this}}<li class="meeting-item" meetingId="{{id}}" "><h2 class="meeting-name">{{name}}</h2><div class="meeting-time"><div class="time-item time-past" style="width:0%;"></div>{{#each meetingTime}}<div class="time-item time-disabled" style="width:{{percent}};left:{{offset}}" title="{{title}} {{start}}-{{end}}"><h3 class="time-title">{{title}}</h3><p class="time-range">{{start}}-{{end}}</p></div>{{/each}}</div></li>{{/each}}'
+    config.meetingData=[{id:1,name:"湾流",meetingTime:[{start:1415089505,end:1415089505+60*120,title:"巴巴巴巴拉拉"},{start:1415089505+60*150,end:1415089505+60*220,title:"balalalala"}]},
+        {id:2,name:"三重门",meetingTime:[{start:1415089505-60*120,end:1415089505+60*100,title:"难啊难南岸"},{start:1415089505-60*420,end:1415089505-60*320,title:"急啊急啊急啊急啊"}]}];
+    var tpl='{{#each this}}<li class="meeting-item" meetingId="{{id}}" "><h2 class="meeting-name">{{name}}</h2><div class="meeting-time"><div class="time-item time-past" style="width:0%;"></div>{{#each meetingTime}}<div class="time-item time-disabled" style="width:{{percent}};left:{{offset}}" title="{{title}} {{tplStart}}-{{tplEnd}}"><h3 class="time-title">{{title}}</h3><p class="time-range">{{tplStart}}-{{tplEnd}}</p></div>{{/each}}</div></li>{{/each}}'
      var template=Handlebars.compile(tpl);
+    var dateInput={};
     $(document).ready(function(){
         var jWin=$(window);
         var jWinHeight=jWin.height();
         var jWinWidth=jWin.width();
         config.winWidth=jWinWidth;
+        dateInput=$("#dateInput");
         var meetingList=$("#meetingList");
-        var cssTextX="position:fixed;width:"+jWinWidth+"px;height:"+jWinHeight+"px;top:50px;left:-10px;z-index:11;";
-        var cssTextY="position:absolute;width:"+jWinWidth+"px;height:"+jWinHeight+"px;top:50px;left:-10px;";
+        var cssTextX="position:fixed;width:"+jWinWidth+"px;height:40px;top:50px;left:-5px;z-index:11;";
+        var cssTextY="position:absolute;width:155px;height:"+jWinHeight+"px;top:50px;left:-5px;";
         var SVGX=mySVG.SVG("meetingBox",cssTextX);
         var SVGY=mySVG.SVG("meetingBox",cssTextY);
        // mySVG.line(SVG,{  x1:"0", y1:"0", x2:jWinWidth, y2:jWinHeight,stroke:"#C0D0E0","stroke-width":"1"});
@@ -120,35 +125,71 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
         svgDom.appendChild(g);
     }
     function fillMeetingBox(data,dom){
-        //
+
+        var date=new Date(dateInput.val().replace(/-/g,"/"));
+        var start=parseInt(date.setHours(config.startTime)/1000);
+        var end=parseInt(date.setHours(config.endTime)/1000);
+        //填充完整的时间区间
+        data=addGreenRange2Array(data,start,end);
         for(var i = 0;i<data.length;i++){
             var d=data[i];
-            d.meetingTime=formateTime(d.meetingTime,config.startTime,config.endTime);
+            d.meetingTime=formateTime2Box(d.meetingTime,start,end);
         }
-        //
         dom.html(template(data));
     }
-    function formateTime(time,startTime,endTime){
-        var minute=60;
-        var startMinute=startTime*minute;
-        var endminute=endTime*minute;
-
-        var rangeTime=endminute-startMinute;//会议时间区间的分钟数
-        for(var i=0; i< time.length;i++){
-            var start = time[i].start;
-            var end = time[i].end;
-            var s=start.split(":");
-            var e=end.split(":");
-            var percent=0, offset=0;
-            var sMinute=(s[0]-0)*minute+parseInt(s[1]);
-            var eMinute=(e[0]-0)*minute+parseInt(e[1]);
-             var r=eMinute-sMinute;
-            offset = (sMinute-startMinute) /rangeTime ;
-            percent = r/rangeTime ;
-            time[i].offset = (offset*100)+"%";
-            time[i].percent = (percent*100)+"%";
+    function formateTime2Box(time,startTime,endTime){
+       for(var i=0; i< time.length;i++){
+             createMettingBoxSize(time[i],startTime);
         }
-        console.log(time);
         return time;
+    }
+    function formatTime2mmdd(timeNum){
+        var d = new Date();
+        d.setTime(timeNum*1000);
+        var h = d.getHours();
+        var m = d.getMinutes()-0;
+        m=m>10?m:"0"+m;
+        return h+":"+m;
+    }
+    function createMettingBoxSize(time,startTime){
+        var start = time.start-0;
+        var end = time.end-0;
+        var percent=0, offset=0;
+        var r=end-start;
+        offset = (start-startTime) /config.rangeTime ;
+        percent = r/config.rangeTime ;
+        time.offset = (offset*100)+"%";
+        time.percent = (percent*100)+"%";
+        time.tplStart=formatTime2mmdd(start);//用于在模版展示
+        time.tplEnd=formatTime2mmdd(end);
+    }
+    //增加那些能申请会议室的区间
+    function addGreenRange2Array(timeData,startTime,endTime){
+       //clone数组
+        var a = deepClone(timeData);
+        if(index===0&&time[index].start!=startTime){
+
+        }else if(index===time.length-1&&time[index].end!=endTime){
+
+        }else{
+
+        }
+    }
+    //深度复制的方法
+   function deepClone(parent, child) {
+        var i, toStr = Object.prototype.toString,
+            astr = "[object Array]";
+        child = child || {};
+        for (i in parent) {
+            if (parent.hasOwnProperty(i)) {
+                if (typeof parent[i] === "object") {
+                    child[i] = (toStr.call(parent[i]) === astr) ? [] : {};
+                    o.deepClone(parent[i], child[i]);
+                } else {
+                    child[i] = parent[i];
+                }
+            }
+        }
+        return child;
     }
 });
