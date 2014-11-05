@@ -9,7 +9,7 @@ requirejs.config({
             'handlebars' : "handlebars"
         }
 })
-require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
+require(['jquery',"my_svg",'handlebars','popup'],function($,mySVG,Handlebars,popup){
     var config={};
     config.xAxisTime=[];
     config.interval=30;//30分钟一个数据点
@@ -18,14 +18,16 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
     config.strStartTime="9:00";
     config.strEndTime="21:00";
     config.rangeTime=(config.endTime-config.startTime)*60*60;
-
     config.leftWidth=150;
     config.yAxis=30;
     config.scaleY=80;//y轴间隔
-    config.lineColor="#C0D0E0"
-    config.meetingData=[{id:1,name:"湾流",meetingTime:[{start:1415089505,end:1415089505+60*120,title:"巴巴巴巴拉拉"},{start:1415089505+60*150,end:1415089505+60*220,title:"balalalala"}]},
-        {id:2,name:"三重门",meetingTime:[{start:1415089505-60*120,end:1415089505+60*100,title:"难啊难南岸"},{start:1415089505-60*420,end:1415089505-60*320,title:"急啊急啊急啊急啊"}]}];
-    var tpl='{{#each this}}<li class="meeting-item" meetingId="{{id}}" "><h2 class="meeting-name">{{name}}</h2><div class="meeting-time"><div class="time-item time-past" style="width:0%;"></div>{{#each meetingTime}}<div class="time-item j_time_item {{#if disabled}} time-disabled {{/if}}" style="width:{{percent}};left:{{offset}}"  title="      {{#if disabled}}{{title}} {{/if}}{{tplStart}}-{{tplEnd}}"  index="{{@index}}"><h3 class="time-title">{{#if disabled}}{{title}}{{/if}}</h3><p class="time-range">{{tplStart}}-{{tplEnd}}</p></div>{{/each}}</div></li>{{/each}}'
+    config.lineColor="#C0D0E0";
+
+    config.meetingData=[{id:1,name:"湾流",meetingTime:[{start:1415089505,end:1415089505+60*120,title:"巴巴巴巴拉拉",meetingUser:"wyc",meetingUserEmail:"www@163.com"},{start:1415089505+60*150,end:1415089505+60*220,title:"balalalala",meetingUser:"wyc",meetingUserEmail:"www@163.com"}]},
+        {id:2,name:"三重门",meetingTime:[{start:1415089505-60*420,end:1415089505-60*300,title:"难啊难南岸",meetingUser:"wyc",meetingUserEmail:"www@163.com"},{start:1415089505-60*120,end:1415089505,title:"急啊急啊急啊急啊",meetingUser:"wyc",meetingUserEmail:"www@163.com"}]}];
+
+
+    var tpl='{{#each this}}<li class="meeting-item" meetingIndex="{{@index}}" "><h2 class="meeting-name">{{name}}</h2><div class="meeting-time"><div class="time-item time-past" style="width:0%;"></div>{{#each meetingTime}}<div class="time-item j_time_item {{#if disabled}} time-disabled {{/if}}" style="width:{{percent}};left:{{offset}}"  title="      {{#if disabled}}{{title}} {{/if}}{{tplStart}}-{{tplEnd}}"  index="{{@index}}"><h3 class="time-title">{{#if disabled}}{{title}}{{/if}}</h3><p class="time-range">{{tplStart}}-{{tplEnd}}</p></div>{{/each}}</div></li>{{/each}}'
      var template=Handlebars.compile(tpl);
     var dateInput={};
     $(document).ready(function(){
@@ -43,7 +45,10 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
         init();
         createXAxis(SVGX,{width:jWinWidth});
         createYAxis(SVGY,config.meetingData,meetingList);
-
+        meetingList.on("click",function(e){
+            var ele = e.target;
+            showMeetingPopup(ele);
+        });
     });
     function init(){
         //生成x轴的时间
@@ -129,7 +134,10 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
         var start=parseInt(date.setHours(config.startTime)/1000);
         var end=parseInt(date.setHours(config.endTime)/1000);
         //填充完整的时间区间
-        data=addGreenRange2Array(data,start,end);
+        addAttr(data,{disabled:true});
+        data=config.meetingData=addGreenRange2Array(data,start,end);
+
+
         for(var i = 0;i<data.length;i++){
             var d=data[i];
             d.meetingTime=formateTime2Box(d.meetingTime,start,end);
@@ -166,14 +174,12 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
     function addGreenRange2Array(timeData,startTime,endTime){
        //clone数组
         var title="点击预定会议室";
-
         var a = deepClone(timeData,[]);
         for(var i=0;i<timeData.length;i++){
             var a1=a[i].meetingTime;
             var time=timeData[i].meetingTime;
             for(var n=0;n<time.length;n++){
                 var m = time[n];
-                a1[n].disabled=true;
                 if(n===0){
                    if(m.start!=startTime){
                        a1.unshift({start:startTime,end: m.start,title:title});
@@ -188,7 +194,19 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
             }
         }
         timeData=null;
+        console.log(JSON.stringify(a));
         return a;
+    }
+    function addAttr(data,attr){
+        for(var i=0;i<data.length;i++){
+            var d=data[i].meetingTime;
+            for(var n=0;n<d.length;n++){
+               // d[n].disabled=true;
+                for(var key in attr){
+                    d[n][key]=attr[key];
+                }
+            }
+        }
     }
     //深度复制的方法
    function deepClone(parent, child) {
@@ -205,5 +223,24 @@ require(['jquery',"my_svg",'handlebars'],function($,mySVG,Handlebars){
             }
         }
         return child;
+    }
+    function showMeetingPopup (ele){
+        //判断是已预订的还是未预定的时间段
+        var e=$(ele);
+        var className="j_time_item";//时间区间节点的class
+        if(!e.hasClass(className)){
+            e = e.parents("div."+className);
+        }
+        var index= e.attr("index");
+        var meetingIndex= e.parents("li").attr("meetingIndex");
+        var meetingData=config.meetingData[meetingIndex];
+        var thisRangeData=meetingData.meetingTime[index];
+        if(thisRangeData.disabled){
+            //已预订，弹出信息
+            popup.disabledPopupOpen(thisRangeData);
+        }else{
+            //未预定，弹出信息
+            popup.fixPopupOpen(thisRangeData);
+        }
     }
 });

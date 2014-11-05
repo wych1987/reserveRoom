@@ -2,13 +2,126 @@
 <html>
 <head>
 <title>会议室预定系统</title>
-    <link rel="stylesheet" href=" css/meeting_common.css"/>
+    <style>
+        html {
+            color:#000;
+            background:#FFF;
+            height:100%;
+        }
+        body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,
+        input,textarea,p,blockquote,th,td {
+            margin:0;
+            padding:0
+        }
+        body {
+            line-height: 1.5;
+            font: 12px/100%  "SimSun arial","Times New Roman","Times", "serif";
+            height:100%;
+        }
+        ul,li,ol{list-style: none;}
+        .meeting-box{padding: 50px 20px;position: relative;height: 100%;box-sizing: content-box;}
+        .meeting-list{position: absolute;top:85px;left:40px;width:1290px;color:#fff;z-index: 10;}
+        .meeting-item{height:40px;margin: 20px 0;display: flex;flex-flow: row;}
+        .meeting-name{height:40px;line-height:40px;font-size: 20px;color:#111;width:95px;text-align: center;display: inline-block;margin: 0 10px 0 0;}
+        .meeting-time{height: 100%;background: #34A637;flex: 1;position: relative;}
+        .time-item{box-sizing: border-box;height:100%;position: absolute;top:0;left:0;border-right:1px solid #ffffff;overflow: hidden;text-align: center;overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;}
+        .time-disabled{background-color:#F97370;}
+        .time-past{background: #C7C7C7;cursor: wait;}
+        .time-title{height:20px;line-height: 20px;font-weight: 500;font-size: 14px;white-space: nowrap;overflow: hidden;    text-overflow: ellipsis;}
+        .time-range{height:15px;line-height: 15px;font-size: 12px;}
+        .mis-popup-wrap{position: fixed;height: 100%;width: 100%;background: rgba(0,0,0,0.5);z-index: 100;top:0;left:0;}
+        .mis-popup-wrap-loading{position: absolute;height: 75%;width: 98%;background: rgba(255,255,255,0.5);z-index: 100;}
+        .mis-popup-stuff{width: 550px;border:1px solid #cdcdcd;min-height: 115px;border-radius: 3px;padding: 0 0 15px 0;
+            position: absolute;
+            top: 50%; left: 50%;
+            -webkit-transform: translate(-50%,-50%);
+            -ms-transform: translate(-50%,-50%);
+            transform: translate(-50%,-50%);
+            background: #fff;}
+        .mis-popup-stuff-loading {
+            width: 60px;
+            min-height: 60px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            -webkit-transform: translate(-50%,-50%);
+            -ms-transform: translate(-50%,-50%);
+            transform: translate(-50%,-50%);
+        }
+        .txt-center {
+            text-align: center;
+        }
+        .hide{display: none !important;}
+        .title-popup-box{border-bottom: 1px solid #cdcdcd;background:#efefef;height: 38px;line-height: 38px;padding:0 15px;position: relative;}
+        .mis-popup-title{font-family: "microsoft yahei";font-size: 12px;font-weight: 700;color: #8b8b8b;height: 100%;}
+        .mis-popup-close,.mis-icon-close{width:11px;height: 11px;background: url("/images/icon_close.png") no-repeat ;cursor: pointer;position: absolute;top:13px;right: 15px;}
+        .mis-popup-content{min-width:300px;margin: 0 auto;padding: 10px;}
+        mis-btn.a{color:#fff;}
+        .mis-btn{background: #ff8a07;border-radius: 3px;cursor:pointer;outline: none;border:0 none;display:inline-block;text-decoration: none;font-size: 12px;margin: 0 7px;}
+        .mis-btn:link{background: #ff8a07;}
+        .mis-btn:hover{background: #ffa32c;color:#fff;}
+        .mis-btn:active{background: #fb8500;}
+        .mis-btn-cancel{background: #d2d2d2;}
+        .mis-btn-cancel:link{background: #d2d2d2;}
+        .mis-btn-cancel:hover{background: #8d8d8d;}
+        .mis-btn-cancel:active{background: #7d7d7d;}
+        .mis-btn01{padding: 9px 10px;color:#fff;height: 14px;line-height: 14px;}
+        .mis-btn02{padding:0 15px;color: #fff; height: 26px;line-height: 26px;}
+        .mis-input{border:1px solid #ccc;height:14px;padding:10px 15px 10px 10px;border-radius: 3px;outline-color: #ffae5f;font-size: 12px;width:150px;}
+        .input-arrow-bottom{position: absolute;
+            top: 15px;
+            right: 5px;
+            border-top: 8px solid #666;
+            border-right: 5px solid rgba(0, 0, 0, 0);
+            border-bottom: 0 none;
+            border-left: 5px solid rgba(0, 0, 0, 0);
+            line-height: 0;
+            cursor: pointer;}
+        .search-btn{float: right;height:20px;line-height: 20px;padding: 10px 13px;position: relative;text-align: center;color: #ff8a07;background: #fbf8f8;cursor: pointer;}
+        .filter-box{padding: 10px 20px;background: #fbf8f8;}
+        .filter-item{height:38px;line-height: 38px;position: relative;margin: 0 10px 0 0;font-size: 12px;float: left;}
+        .filter-item01{height:34px;line-height: 34px;position: relative;margin: 0 10px 10px 0;font-size: 12px;float: left;}
+        .filter-item label{margin: 0 10px 0 0;}
+        .input-txt02{width:120px;}
+        .input-txt03{width:95px;}
+        .input-txt04{width:335px;}
+        .form-item{margin: 0 0 10px 0;}
+        .form-item .filter-item{margin-right: 30px;}
+        .form-item label{min-width: 75px;text-align: right;display: inline-block;vertical-align: top;    height: 34px;    line-height: 34px;margin: 0 5px 0 0;}
+        .form-editor{margin-top:20px;}
+        .form-btn-item{text-align: center;margin: 30px 0 0 0;}
+        .pwd-label{width:120px;display: inline-block;}
+        .pwd-label01{width:170px;display: inline-block;}
+        .input-item label{text-align: right;}
+        .mis-select {
+            height: 32px;
+            padding: 0 10px;
+            font-size: 12px;
+        }
+        .star-tip {
+            font-style: normal;
+            color: #FF8A07;
+            vertical-align: middle;
+            vertical-align: middle;
+            font-size: 16px;
+            margin: 0px 5px 0 0;
+            display: inline-block;
+            height: 20px;
+            line-height: 20px;
+        }
+        .input-txt01{width:250px;}
+        .input-tips{color: #FF8A07;font-size: 16px;}
+        .select-box{display: inline-block;}
+    </style>
     <script src=" js/require.js" data-main="/js/main"></script>
 </head>
 <body >
 <input class="date-input " type="text" id="dateInput" onfocus="WdatePicker({minDate:'%y-%M-%d'})" onclick="WdatePicker({minDate:'%y-%M-%d'})" value="2014-11-04">
     <div class="meeting-box" id="meetingBox">
         <ul id="meetingList" class="meeting-list">
+            <!--
             <li class="meeting-item">
                 <h2 class="meeting-name">湾湾</h2>
                 <div class="meeting-time">
@@ -21,8 +134,77 @@
                     </div>
                 </div>
             </li>
+            -->
         </ul>
     </div>
+<div class="mis-popup-wrap hide" id="popupFix">
+    <div class="mis-popup-stuff ">
+    <div class="title-popup-box">
+        <h3 class="mis-popup-title" id="popupTitle">预定会议室--湾流会议室</h3>
+        <i class="mis-popup-close" title="关闭" id="meetingPopupClose"></i>
+    </div>
+    <div class="mis-popup-content">
+        <form onsubmit="return false;" id="meetingForm">
+        <ul class="popup-form-wrap">
+            <li class="form-item">
+                <div class="input-item">
+                    <label for="startHour" class="pwd-label"><em class="star-tip">*</em>选择开始时间:</label>
+                    <select class="mis-select" id="startHour">
+                        <option>15</option>
+                    </select>
+                    <span class="select-tips">点</span>
+                    <select class="mis-select" id="startMinu" disabled>
+                        <option>15</option>
+                    </select>
+                    <span class="select-tips">分</span>
+                </div>
+            </li>
+            <li class="form-item">
+                <div class="input-item">
+                    <label for="endtHour" class="pwd-label"><em class="star-tip">*</em>选择结束时间:</label>
+                    <div class="select-box">
+                        <select class="mis-select" id="endtHour">
+                            <option>15</option>
+                        </select>
+                        <span class="select-tips">点</span>
+                        <select class="mis-select" id="endMinu">
+                            <option>15</option>
+                        </select>
+                        <span class="select-tips">分</span>
+                    </div>
+                </div>
+            </li>
+
+            <li class="form-item">
+                <div class="input-item">
+                    <label for="meetingTitle" class="pwd-label"><em class="star-tip">*</em>会议主题:</label>
+                    <input class="input-txt01 mis-input" id="meetingTitle"   value="" >
+                </div>
+            </li>
+            <li class="form-item">
+                <div class="input-item">
+                    <label for="meetingUser" class="pwd-label"><em class="star-tip">*</em>预订人:</label>
+                    <input class="input-txt01 mis-input" id="meetingUser"   value="" >
+                </div>
+            </li>
+            <li class="form-item">
+                <div class="input-item">
+                    <label for="meetingUserEmail" class="pwd-label"><em class="star-tip">*</em>公司邮箱:</label>
+                    <input class="  mis-input" id="meetingUserEmail"   value="" >
+                    <span class="input-tips">@diditaxi.com.cn</span>
+                </div>
+            </li>
+            <li class="form-item txt-center">
+                <input class="mis-btn mis-btn02" id="saveMeetingBtn" value="提 交" type="button">
+            </li>
+        </ul>
+        </form>
+    </div>
+</div>
+</div>
+<div class="mis-popup-wrap hide" id="popupDisabled">
+
+</div>
 <script src="/js/My97/WdatePicker.js"></script>
 </body>
 </html>
