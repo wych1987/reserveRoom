@@ -17,20 +17,21 @@ require(['jquery',"my_svg",'handlebars','popup'],function($,mySVG,Handlebars,pop
     config.endTime=21;//晚21点
     config.strStartTime="9:00";
     config.strEndTime="21:00";
+    config.maxTime=60*3;//会议室最长时间180分钟
+    config.minRangeTime=5;//时间间隔,5分钟
     config.rangeTime=(config.endTime-config.startTime)*60*60;
     config.leftWidth=150;
     config.yAxis=30;
     config.scaleY=80;//y轴间隔
     config.lineColor="#C0D0E0";
-
     config.meetingData=[{id:1,name:"湾流",meetingTime:[{start:1415089505,end:1415089505+60*120,title:"巴巴巴巴拉拉",meetingUser:"wyc",meetingUserEmail:"www@163.com"},{start:1415089505+60*150,end:1415089505+60*220,title:"balalalala",meetingUser:"wyc",meetingUserEmail:"www@163.com"}]},
         {id:2,name:"三重门",meetingTime:[{start:1415089505-60*420,end:1415089505-60*300,title:"难啊难南岸",meetingUser:"wyc",meetingUserEmail:"www@163.com"},{start:1415089505-60*120,end:1415089505,title:"急啊急啊急啊急啊",meetingUser:"wyc",meetingUserEmail:"www@163.com"}]}];
-
 
     var tpl='{{#each this}}<li class="meeting-item" meetingIndex="{{@index}}" "><h2 class="meeting-name">{{name}}</h2><div class="meeting-time"><div class="time-item time-past" style="width:0%;"></div>{{#each meetingTime}}<div class="time-item j_time_item {{#if disabled}} time-disabled {{/if}}" style="width:{{percent}};left:{{offset}}"  title="      {{#if disabled}}{{title}} {{/if}}{{tplStart}}-{{tplEnd}}"  index="{{@index}}"><h3 class="time-title">{{#if disabled}}{{title}}{{/if}}</h3><p class="time-range">{{tplStart}}-{{tplEnd}}</p></div>{{/each}}</div></li>{{/each}}'
      var template=Handlebars.compile(tpl);
     var dateInput={};
     $(document).ready(function(){
+        popup.init({startTime:config.startTime,endTime:config.endTime,maxTime:config.maxTime,minRangeTime:config.minRangeTime});
         var jWin=$(window);
         var jWinHeight=jWin.height();
         var jWinWidth=jWin.width();
@@ -194,7 +195,7 @@ require(['jquery',"my_svg",'handlebars','popup'],function($,mySVG,Handlebars,pop
             }
         }
         timeData=null;
-        console.log(JSON.stringify(a));
+
         return a;
     }
     function addAttr(data,attr){
