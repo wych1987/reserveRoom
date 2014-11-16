@@ -78,10 +78,22 @@ define(['jquery','handlebars'],function($,Handlebars){
     }
     o.fixPopupOpen=function(data){
 
-        var rangeTime=formatRangeData(data);
-
-        fixObj.box.removeClass("hide");
+        fixObj.title.html("预定会议室--"+data.meetingName);
+		config.meetingId=data.meetingId;
+         rangeTime=formatRangeData(data);
+        fixObj.startHour.html(createOption(rangeTime.hour)).trigger("change");
+        fixObj.endHour.trigger("change");
+		fixObj.box.removeClass("hide");
     }
+	o.fixPopupClose=function(){
+		// 
+		 fixObj.box.addClass("hide");
+		fixObj.meetingForm.reset();
+		fixObj.endHour.html("");
+		fixObj.endMinu.html("");
+		
+		$("#searchBtn").trigger("click");
+	}
     o.disabledPopupOpen=function(data){
         disabledPopup.box.html(disabledPopup.template(data));
         disabledPopup.box.removeClass("hide");
